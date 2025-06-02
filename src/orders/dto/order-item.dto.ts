@@ -10,6 +10,5 @@ export class OrderItemDto {
   quantity: number;
 
   @IsNumber()
-  @IsNumber()
   price: number;
 }

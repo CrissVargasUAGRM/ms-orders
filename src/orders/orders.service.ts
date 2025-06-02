@@ -1,10 +1,4 @@
-import {
-  HttpStatus,
-  Inject,
-  Injectable,
-  Logger,
-  OnModuleInit,
-} from '@nestjs/common';
+import {HttpStatus, Inject, Injectable, Logger, OnModuleInit} from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { PrismaClient } from '@prisma/client';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
@@ -18,7 +12,8 @@ import { OrderWithProducts } from './interfaces/order-with-produts.interface';
 export class OrdersService extends PrismaClient implements OnModuleInit {
   private readonly logger = new Logger('OrdersService');
 
-  constructor(@Inject(NATS_SERVICE) private readonly client: ClientProxy) {
+  constructor(
+    @Inject(NATS_SERVICE) private readonly client: ClientProxy) {
     super();
   }
 
@@ -84,6 +79,7 @@ export class OrdersService extends PrismaClient implements OnModuleInit {
         })),
       };
     } catch (error) {
+      console.log(error);
       throw new RpcException({
         status: HttpStatus.BAD_REQUEST,
         message: 'Check logs',

@@ -13,11 +13,11 @@ export class OrdersController {
   async create(@Payload() createOrderDto: CreateOrderDto) {
 
     const order = await this.ordersService.create(createOrderDto);
-    const paymentSession = await this.ordersService.createPaymentSession(order)
+    //const paymentSession = await this.ordersService.createPaymentSession(order)
 
     return {
       order,
-      paymentSession,
+      // paymentSession,
     }
   }
 
@@ -36,7 +36,6 @@ export class OrdersController {
     return this.ordersService.changeStatus(changeOrderStatusDto)
     
   }
-  
   
   @EventPattern('payment.succeeded')
   paidOrder(@Payload() paidOrderDto: PaidOrderDto ) {

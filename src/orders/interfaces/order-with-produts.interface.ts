@@ -1,4 +1,4 @@
-import { OrderStatus } from '@prisma/client';
+import { OrderStatusListEnum } from '../enum/order.status.enum';
 
 
 export interface OrderWithProducts {
@@ -11,7 +11,7 @@ export interface OrderWithProducts {
   id: string;
   totalAmount: number;
   totalItems: number;
-  status: OrderStatus;
+  status: OrderStatusListEnum;
   paid: boolean;
   paidAt: Date;
   createdAt: Date;

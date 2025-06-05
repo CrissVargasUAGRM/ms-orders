@@ -7,6 +7,8 @@ import { ChangeOrderStatusDto, PaidOrderDto } from './dto';
 import { NATS_SERVICE, PRODUCT_SERVICE } from 'src/config';
 import { firstValueFrom, throwError } from 'rxjs';
 import { OrderWithProducts } from './interfaces/order-with-produts.interface';
+import { OrderStatusListEnum } from './enum/order.status.enum';
+import { uuid } from 'uuidv4';
 
 @Injectable()
 export class OrdersService extends PrismaClient implements OnModuleInit {
@@ -45,11 +47,18 @@ export class OrdersService extends PrismaClient implements OnModuleInit {
       //3. Crear una transacción de base de datos
       const order = await this.order.create({
         data: {
+          id: uuid(),
           totalAmount: totalAmount,
           totalItems: totalItems,
+          status: OrderStatusListEnum.PENDING,
+          paid: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          stripeChargeId: uuid(),
           OrderItem: {
             createMany: {
               data: createOrderDto.items.map((orderItem) => ({
+                id: uuid(),
                 price: products.find(
                   (product) => product.id === orderItem.productId,
                 ).price,
@@ -198,7 +207,9 @@ export class OrdersService extends PrismaClient implements OnModuleInit {
         // La relación
         OrderReceipt: {
           create: {
-            receiptUrl: paidOrderDto.receiptUrl
+            receiptUrl: paidOrderDto.receiptUrl,
+            id: '1',
+            updatedAt: new Date()
           }
         }
       }

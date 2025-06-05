@@ -1,8 +1,8 @@
-import { OrderStatus } from '@prisma/client';
+import { OrderStatusListEnum } from './order.status.enum';
 
 
 export const OrderStatusList = [
-  OrderStatus.PENDING,
-  OrderStatus.DELIVERED,
-  OrderStatus.CANCELLED,
+  OrderStatusListEnum.PENDING,
+  OrderStatusListEnum.DELIVERED,
+  OrderStatusListEnum.CANCELLED,
 ]

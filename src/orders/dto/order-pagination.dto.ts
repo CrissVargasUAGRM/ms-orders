@@ -1,7 +1,7 @@
 import { IsEnum, IsOptional } from 'class-validator';
 import { PaginationDto } from 'src/common';
 import { OrderStatusList } from '../enum/order.enum';
-import { OrderStatus } from '@prisma/client';
+import { OrderStatusListEnum } from '../enum/order.status.enum';
 
 
 export class OrderPaginationDto extends PaginationDto {
@@ -11,7 +11,7 @@ export class OrderPaginationDto extends PaginationDto {
   @IsEnum( OrderStatusList, {
     message: `Valid status are ${ OrderStatusList }`
   })
-  status: OrderStatus;
+  status: OrderStatusListEnum;
 
 
 }

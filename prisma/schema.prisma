@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -12,7 +11,7 @@ model Order {
   id             String         @id
   totalAmount    Float
   totalItems     Int
-  status         OrderStatus    @default(PENDING)
+  status         String         @default("PENDING")
   paid           Boolean        @default(false)
   paidAt         DateTime?
   createdAt      DateTime       @default(now())
@@ -54,11 +53,4 @@ model User {
   email    String @unique
   name     String
   password String
-}
-
-enum OrderStatus {
-  PENDING
-  DELIVERED
-  CANCELLED
-  PAID
 }

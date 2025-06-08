@@ -17,6 +17,8 @@ model Order {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime
   stripeChargeId String?
+  userid         Int            @default(1)
+  clientid       Int            @default(1)
   OrderItem      OrderItem[]
   OrderReceipt   OrderReceipt[]
 }

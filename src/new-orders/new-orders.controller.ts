@@ -15,4 +15,13 @@ export class NewOrdersController {
       order,
     };
   }
+
+  @MessagePattern('updateNewOrderData')
+  async updateOrderData(@Payload() updateNewOrderDto: UpdateNewOrderDto) {
+    const order = await this.newOrdersService.changeDataOrder(updateNewOrderDto);
+    return {
+      order,
+    };
+
+  }
 }

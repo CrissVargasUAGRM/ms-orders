@@ -8,7 +8,9 @@ import { NATS_SERVICE, PRODUCT_SERVICE } from 'src/config';
 import { firstValueFrom, throwError } from 'rxjs';
 import { OrderWithProducts } from './interfaces/order-with-produts.interface';
 import { OrderStatusListEnum } from './enum/order.status.enum';
-import { uuid } from 'uuidv4';
+import { CreateNewOrderDto } from './dto/create-new-order.dto';
+import { v4 } from 'uuid';
+import { UpdateNewOrderDto } from './dto/update-new-order.dto';
 
 @Injectable()
 export class OrdersService extends PrismaClient implements OnModuleInit {
@@ -24,41 +26,43 @@ export class OrdersService extends PrismaClient implements OnModuleInit {
     this.logger.log('Database connected');
   }
 
-  async create(createOrderDto: CreateOrderDto) {
+  async create(createOrderDto: CreateNewOrderDto) {
     try {
       //1 Confirmar los ids de los productos
-      const productIds = createOrderDto.items.map((item) => item.productId);
+      const productIds = createOrderDto.details.map((item) => item.productId);
       const products: any[] = await firstValueFrom(
         this.client.send({ cmd: 'validate_products' }, productIds),
       );
 
       //2. Cálculos de los valores
-      const totalAmount = createOrderDto.items.reduce((acc, orderItem) => {
+      const totalAmount = createOrderDto.details.reduce((acc, orderItem) => {
         const price = products.find(
           (product) => product.id === orderItem.productId,
         ).price;
         return price * orderItem.quantity;
       }, 0);
 
-      const totalItems = createOrderDto.items.reduce((acc, orderItem) => {
+      const totalItems = createOrderDto.details.reduce((acc, orderItem) => {
         return acc + orderItem.quantity;
       }, 0);
 
       //3. Crear una transacción de base de datos
       const order = await this.order.create({
         data: {
-          id: uuid(),
+          id: v4(),
           totalAmount: totalAmount,
           totalItems: totalItems,
           status: OrderStatusListEnum.PENDING,
           paid: false,
           createdAt: new Date(),
           updatedAt: new Date(),
-          stripeChargeId: uuid(),
+          stripeChargeId: v4(),
+          userid: createOrderDto.userId,
+          clientid: createOrderDto.clientId,
           OrderItem: {
             createMany: {
-              data: createOrderDto.items.map((orderItem) => ({
-                id: uuid(),
+              data: createOrderDto.details.map((orderItem) => ({
+                id: v4(),
                 price: products.find(
                   (product) => product.id === orderItem.productId,
                 ).price,
@@ -219,6 +223,83 @@ export class OrdersService extends PrismaClient implements OnModuleInit {
 
   }
 
+  async changeDataOrder(orderDto: UpdateNewOrderDto) {
+    try {
+      this.logger.log('Update order data init');
 
+      // confirmar los ids de los productos
+      const productIds = orderDto.details.map(
+        (item) => item.productId,
+      );
+      const products: any[] = await firstValueFrom(
+        this.client.send({ cmd: 'validate_products' }, productIds),
+      );
+
+      // realizar cálculos de valores
+      const totalAmount = orderDto.details.reduce((acc, orderItem) => {
+        const price = products.find(
+          (product) => product.id === orderItem.productId,
+        ).price;
+        return acc + price * orderItem.quantity;
+      }, 0);
+
+      const totalItems = orderDto.details.reduce((acc, orderItem) => {
+        return acc + orderItem.quantity;
+      }, 0);
+
+      // actualizamos la orden con toda la informacion ya calculada y declarada
+      const newOrder = await this.order.update({
+        where: { id: orderDto.newOrderId },
+        data: {
+          userid: orderDto.userId,
+          clientid: orderDto.clientId,
+          totalAmount: totalAmount,
+          totalItems: totalItems,
+          updatedAt: new Date(),
+          OrderItem: {
+            deleteMany: {},
+            createMany: {
+              data: orderDto.details.map((orderItem) => ({
+                id: v4(),
+                price: products.find(
+                  (product) => product.id === orderItem.productId,
+                ).price,
+                productId: orderItem.productId,
+                quantity: orderItem.quantity,
+              })),
+            }
+          }
+        },
+        include: {
+          OrderItem: {
+            select: {
+              price: true,
+              quantity: true,
+              productId: true,
+            }
+          }
+        }
+      });
+
+      console.log(newOrder);
+
+      this.logger.log('Finish update order data');
+
+      return {
+        ...newOrder,
+        OrderItem: newOrder.OrderItem.map((orderItem) => ({
+          ...orderItem,
+          name: products.find((product) => product.id === orderItem.productId)
+            .name,
+        })),
+      };
+    } catch (error) {
+      this.logger.error('Error changing order data', error);
+      throw new RpcException({
+        status: HttpStatus.BAD_REQUEST,
+        message: 'Error updating order data',
+      });
+    }
+  }
 
 }

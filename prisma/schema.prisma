@@ -41,6 +41,16 @@ model OrderReceipt {
   Order      Order    @relation(fields: [orderId], references: [id])
 }
 
+model Payment {
+  id        Int       @id @default(autoincrement())
+  clientid  Int       @default(1)
+  userid    Int       @default(1)
+  orderId   String
+  amount    Float
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @default(now())
+}
+
 model Product {
   id        Int      @id @default(autoincrement())
   name      String

@@ -92,10 +92,9 @@ export class OrdersService extends PrismaClient implements OnModuleInit {
         })),
       };
     } catch (error) {
-      console.log(error);
       throw new RpcException({
-        status: HttpStatus.BAD_REQUEST,
-        message: 'Check logs',
+        status: error.status,
+        message: error.message,
       });
     }
   }
@@ -163,9 +162,11 @@ export class OrdersService extends PrismaClient implements OnModuleInit {
   }
 
   async changeStatus(changeOrderStatusDto: ChangeOrderStatusDto) {
+    console.log(changeOrderStatusDto);
     const { id, status } = changeOrderStatusDto;
 
     const order = await this.findOne(id);
+
     if (order.status === status) {
       return order;
     }
